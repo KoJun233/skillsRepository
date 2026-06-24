@@ -1,6 +1,6 @@
 ---
 name: harness-setup
-description: 为项目搭建长时运行的 coding agent 工作流框架（harness）。当用户说"搭建 harness"、"配置 agent 工作流"、"设置长时运行工作流"、"初始化 coding agent 环境"、"设置跨会话连续工作"时触发。自动生成 init.sh、feature_list.json、claude-progress.md、session-handoff.md、CLAUDE.md、AGENTS.md 等模板文件，支持 Java/Maven、Node.js、Python 项目。
+description: 为项目搭建长时运行的 coding agent 工作流框架（harness）。当用户说"搭建 harness"、"配置 agent 工作流"、"设置长时运行工作流"、"初始化 coding agent 环境"、"设置跨会话连续工作"时触发。自动生成 init.sh、feature_list.json、claude-progress.md、session-handoff.md、CLAUDE.md、AGENTS.md 等模板文件，并初始化 user-memory.md（全局偏好，跨项目共享）和 project-memory.md（项目偏好）两套 memory 机制，支持 Java/Maven、Node.js、Python 项目。
 ---
 
 # Harness 工作流搭建
@@ -37,6 +37,8 @@ description: 为项目搭建长时运行的 coding agent 工作流框架（harne
 | `template/session-handoff.md` | 会话交接摘要 | `{{VERIFY_COMMAND}}` `{{DEBUG_COMMANDS}}` |
 | `template/CLAUDE.md` | 主 Claude 会话指令 | 无（可直接复制） |
 | `template/AGENTS.md` | 多 agent 工作流规则 | 无（可直接复制） |
+| `template/user-memory.md` | 全局用户偏好，跨项目共享（复制到 `~/harness/`） | 无（直接复制，已存在时不覆盖） |
+| `template/project-memory.md` | 项目级偏好，仅当前项目生效 | `{{PROJECT_NAME}}` `{{DATE}}` |
 
 ## 操作步骤
 
@@ -77,6 +79,15 @@ chmod +x harness/init.sh
 1. `feature_list.json` → 替换 `{{PROJECT_NAME}}` 和 `{{DATE}}`
 2. `claude-progress.md` → 替换所有占位符
 3. `session-handoff.md` → 替换 `{{VERIFY_COMMAND}}` 和 `{{DEBUG_COMMANDS}}`
+4. `project-memory.md` → 替换 `{{PROJECT_NAME}}` 和 `{{DATE}}`，复制到 `./harness/project-memory.md`
+
+### 步骤 4.5：初始化全局 memory
+
+全局 memory 用于记录跨所有项目共享的用户偏好（代码风格、提交规范等）。
+
+- 如果 `~/harness/` 目录不存在：`mkdir -p ~/harness`
+- 如果 `~/harness/user-memory.md` **不存在**：从 `template/user-memory.md` 复制过去，让用户后续按需填写
+- 如果 **已存在**：**不覆盖**，保留用户已积累的偏好（这是关键，避免丢失用户配置）
 
 ### 步骤 5：生成 CLAUDE.md 和 AGENTS.md
 
@@ -109,6 +120,8 @@ chmod +x harness/init.sh
 
 - init.sh 的 `ROOT_DIR` 必须指向项目根目录（`SCRIPT_DIR/..`），绝对不能指向 harness 目录
 - 如果 CLAUDE.md / AGENTS.md 已存在，只修改路径引用，不覆盖内容
+- 全局 `~/harness/user-memory.md` 已存在时绝对不能覆盖，必须保留用户已积累的偏好
+- 项目 `./harness/project-memory.md` 每次都会生成（覆盖项目内的旧版本），因为它是项目级配置
 - feature_list.json 生成后 features 数组为空，让用户自己添加功能
 - 生成后必须运行 `./harness/init.sh` 验证脚本工作正常
 - init.sh 生成后必须 `chmod +x` 设置执行权限

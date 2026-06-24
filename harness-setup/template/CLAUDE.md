@@ -9,9 +9,10 @@
 1. 运行 `pwd`，确认当前在正确的仓库根目录
 2. 读取 `harness/claude-progress.md`
 3. 读取 `harness/feature_list.json`
-4. 用 `git log --oneline -5` 查看最近提交
-5. 运行 `./harness/init.sh`
-6. 检查基础 smoke test 或端到端路径是否已经损坏
+4. 读取 `~/harness/user-memory.md`（全局用户偏好）和 `harness/project-memory.md`（项目偏好），遵守其中的代码规范与约定
+5. 用 `git log --oneline -5` 查看最近提交
+6. 运行 `./harness/init.sh`
+7. 检查基础 smoke test 或端到端路径是否已经损坏
 
 然后只选择一个未完成功能，围绕它工作，直到它被验证通过，或者被明确记录为 blocked。
 
@@ -31,6 +32,11 @@
 - `harness/claude-progress.md`
 - `harness/init.sh`
 - `harness/session-handoff.md`（需要简短交接时使用）
+- `harness/project-memory.md`（项目偏好，仅当前项目生效）
+
+全局偏好文件（跨项目共享）：
+
+- `~/harness/user-memory.md`（如存在则必须遵守）
 
 ## 完成门槛
 

@@ -9,9 +9,10 @@
 1. 用 `pwd` 确认当前目录。
 2. 读取 `harness/claude-progress.md`，了解最新已验证状态和下一步。
 3. 读取 `harness/feature_list.json`，选择优先级最高的未完成功能。
-4. 用 `git log --oneline -5` 看最近提交。
-5. 运行 `./harness/init.sh`。
-6. 在开始新功能前，先跑必需的 smoke test 或端到端验证。
+4. 读取 `~/harness/user-memory.md`（全局用户偏好）和 `harness/project-memory.md`（项目偏好），遵守其中的代码规范与约定。
+5. 用 `git log --oneline -5` 看最近提交。
+6. 运行 `./harness/init.sh`。
+7. 在开始新功能前，先跑必需的 smoke test 或端到端验证。
 
 如果基础验证一开始就失败，先修基础状态，不要在坏的起点上继续叠新功能。
 
@@ -31,6 +32,11 @@
 - `harness/claude-progress.md`：会话进度和当前已验证状态
 - `harness/init.sh`：统一的启动与验证入口
 - `harness/session-handoff.md`：较长会话可选的交接摘要
+- `harness/project-memory.md`：项目级偏好与约定
+
+全局偏好文件（跨项目共享）：
+
+- `~/harness/user-memory.md`：用户通用偏好，如存在则必须遵守
 
 ## 完成定义
 
