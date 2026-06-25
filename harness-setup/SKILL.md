@@ -1,22 +1,34 @@
 ---
 name: harness-setup
-description: 为项目搭建长时运行的 coding agent 工作流框架（harness）。当用户说"搭建 harness"、"配置 agent 工作流"、"设置长时运行工作流"、"初始化 coding agent 环境"、"设置跨会话连续工作"时触发。自动生成 init.sh、feature_list.json、claude-progress.md、session-handoff.md、CLAUDE.md、AGENTS.md 等模板文件，并初始化 user-memory.md（全局偏好，跨项目共享）和 project-memory.md（项目偏好）两套 memory 机制，支持 Java/Maven、Node.js、Python 项目。
+description: 为项目搭建或更新长时运行的 coding agent 工作流框架（harness）。当用户说"搭建 harness"、"配置 agent 工作流"、"设置长时运行工作流"、"初始化 coding agent 环境"、"更新/同步/补齐已初始化项目的 harness"、"设置跨会话连续工作"时触发。支持 Java/Maven、Node.js、Python 项目。
 ---
 
 # Harness 工作流搭建
 
 ## 任务目标
 
-- 本 Skill 用于：为新项目快速搭建 harness 工作流框架，实现长时运行、跨会话连续的 coding agent 工作流
+- 本 Skill 用于：为项目搭建或保守更新 harness 工作流框架，实现长时运行、跨会话连续的 coding agent 工作流
 - 能力包含：
   - 自动检测项目类型（Java/Maven、Node.js、Python）
   - 从模板库生成 init.sh 脚本
   - 从模板库生成所有 harness 文件
-- 触发条件：用户提到"搭建 harness"、"配置 agent 工作流"等关键词
+  - 对已初始化项目执行保守 update：只补缺失文件和缺失说明，不覆盖已有 harness 状态
+- 触发条件：用户提到"搭建 harness"、"配置 agent 工作流"、"初始化 coding agent 环境"、"更新 harness"、"同步 harness"、"补齐 harness 文件"等关键词
 
 ## 前置准备
 
 - 项目根目录已存在
+
+## 模式选择
+
+先判断目标项目是否已经初始化过 harness：
+
+| 条件 | 模式 | 行为 |
+|------|------|------|
+| 不存在 `harness/` 目录 | 初始化模式 | 创建完整 harness 框架 |
+| 已存在 `harness/` 目录 | 保守 update 模式 | 只补齐缺失文件和缺失说明，不覆盖已有状态 |
+
+保守 update 模式不是重新初始化。它的目标是让旧项目获得当前 Skill 新增的文件和规则，同时保留项目已有进度、功能清单、memory、脚本定制和人工修改。
 
 ## 资源索引
 
@@ -40,7 +52,7 @@ description: 为项目搭建长时运行的 coding agent 工作流框架（harne
 | `template/user-memory.md` | 全局用户偏好，跨项目共享（复制到 `~/harness/`） | 无（直接复制，已存在时不覆盖） |
 | `template/project-memory.md` | 项目级偏好，仅当前项目生效 | `{{PROJECT_NAME}}` `{{DATE}}` |
 
-## 操作步骤
+## 初始化模式操作步骤
 
 ### 步骤 1：确认项目类型
 
@@ -92,11 +104,95 @@ chmod +x harness/init.sh
 ### 步骤 5：生成 CLAUDE.md 和 AGENTS.md
 
 - 如果目标项目**不存在**这两个文件：从 `template/` 目录直接复制
-- 如果目标项目**已存在**这两个文件：只检查路径引用是否正确（必须是 `./harness/init.sh` 而非 `./init.sh`），不覆盖已有内容
+- 如果目标项目**已存在**这两个文件：
+  1. 不要整体覆盖已有内容
+  2. 检查路径引用是否正确（必须是 `./harness/init.sh` 或 `harness/init.sh`，不能是旧的 `./init.sh`）
+  3. 检查是否已有等效的 memory 写入规则和必需文件说明
+  4. 如果没有等效规则，只追加一个小节，说明：
+     - `~/harness/user-memory.md` 是跨项目偏好的主要 harness 写入位置
+     - `harness/project-memory.md` 是当前项目偏好的主要 harness 写入位置
+     - 如果 Claude Code auto-memory 也记录偏好，必须同步/镜像到对应 harness memory
+
+“等效规则”按语义判断，不要求文本完全一致；重复运行时不得追加重复小节。
 
 ### 步骤 6：验证
 
 运行 `./harness/init.sh` 验证脚本工作正常。
+
+## 保守 update 模式操作步骤
+
+当目标项目已存在 `harness/` 目录时，进入保守 update 模式。不要跳过，也不要整体覆盖。
+
+### Update 步骤 1：确认项目类型
+
+仍然按初始化模式的特征文件判断项目类型，用于决定缺失 `harness/init.sh` 时应复制哪个脚本。如果无法判断且 `harness/init.sh` 已存在，可以继续补齐通用模板文件；如果无法判断且 `harness/init.sh` 缺失，询问用户。
+
+### Update 步骤 2：补齐缺失 harness 文件
+
+逐一检查当前 Skill 的脚本和模板目标文件：
+
+| 目标文件 | 缺失时 | 已存在时 |
+|----------|--------|----------|
+| `harness/init.sh` | 按项目类型复制对应脚本并 `chmod +x` | 不覆盖，保留项目定制 |
+| `harness/feature_list.json` | 从模板生成 | 不覆盖，保留功能状态 |
+| `harness/claude-progress.md` | 从模板生成 | 不覆盖，保留进度日志 |
+| `harness/session-handoff.md` | 从模板生成 | 不覆盖，保留交接内容 |
+| `harness/project-memory.md` | 从模板生成 | 不覆盖，保留项目偏好 |
+
+如果未来模板库新增文件，也按同一规则处理：缺失才创建，已存在则保留。
+
+### Update 步骤 3：初始化全局 memory
+
+`~/harness/user-memory.md` 仍然是 create-only：
+
+- 不存在时，从 `template/user-memory.md` 复制
+- 已存在时，绝不覆盖
+
+### Update 步骤 4：补齐 CLAUDE.md / AGENTS.md 说明
+
+对于目标项目根目录的 `CLAUDE.md` 和 `AGENTS.md`：
+
+- 文件缺失：从模板复制
+- 文件存在：不得整体覆盖，只做窄范围语义补充
+- 检查是否已有等效说明：
+  - 启动路径使用 `./harness/init.sh` 或 `harness/init.sh`，不是旧的 `./init.sh`
+  - 必需文件包含 `harness/feature_list.json`、`harness/claude-progress.md`、`harness/init.sh`、`harness/session-handoff.md`、`harness/project-memory.md`
+  - 全局偏好位置是 `~/harness/user-memory.md`
+  - 项目偏好位置是 `harness/project-memory.md`
+  - 如果 Claude Code auto-memory 也记录偏好，必须同步/镜像到对应 harness memory
+
+只有缺少等效说明时，才追加一个简短小节。重复运行时不得追加重复小节。判断“等效说明”按语义，不要求文本完全一致。
+
+推荐追加小节：
+
+```markdown
+## Harness memory 与重启路径
+
+- 标准重启入口是 `./harness/init.sh`。
+- 项目状态以 `harness/feature_list.json`、`harness/claude-progress.md`、`harness/session-handoff.md` 为准。
+- 跨项目偏好写入 `~/harness/user-memory.md`；当前项目偏好写入 `harness/project-memory.md`。
+- 如果其他 memory 机制也记录偏好，必须同步或镜像到对应 harness memory，避免跨会话信息分裂。
+```
+
+### Update 步骤 5：报告保留和补齐结果
+
+结束时明确报告：
+
+- 本次新创建了哪些缺失文件
+- 哪些已有文件被保留且未覆盖
+- `CLAUDE.md` / `AGENTS.md` 是否追加了缺失说明
+- 哪些已有文件可能和当前模板不同，需要人工对比
+- `./harness/init.sh` 是否运行成功
+
+### Update 步骤 6：验证
+
+如果 `harness/init.sh` 存在，运行：
+
+```bash
+./harness/init.sh
+```
+
+如果验证失败，报告失败命令和错误，不要声称 update 完成。不要为了让验证通过而覆盖用户已有脚本或删除项目状态。
 
 ## 使用示例
 
@@ -112,16 +208,19 @@ chmod +x harness/init.sh
   - 预期产出：完整的 harness 框架，init.sh 使用 npm 命令
 
 - 示例 3：
-  - 场景：项目已有 CLAUDE.md，用户说"初始化 coding agent 环境"
-  - 操作：只更新路径引用，不覆盖已有内容
-  - 关键要点：已存在的文件只修不改
+  - 场景：项目已有 `harness/`，用户说"我的 harness-setup skill 更新了，帮这个旧项目补齐新的 harness 文件"
+  - 操作：进入保守 update 模式 → 缺失文件才创建 → 已有 `feature_list.json` / `claude-progress.md` / `project-memory.md` 不覆盖 → `CLAUDE.md` / `AGENTS.md` 只追加缺失说明
+  - 关键要点：重复运行必须幂等，不得清空项目状态或 memory
 
 ## 注意事项
 
 - init.sh 的 `ROOT_DIR` 必须指向项目根目录（`SCRIPT_DIR/..`），绝对不能指向 harness 目录
-- 如果 CLAUDE.md / AGENTS.md 已存在，只修改路径引用，不覆盖内容
+- 初始化模式可以生成完整 harness；保守 update 模式只能补缺失文件，不得覆盖已有 harness 文件
+- 如果 CLAUDE.md / AGENTS.md 已存在，不要整体覆盖；只做窄范围修正：路径引用和缺失的 memory / 必需文件说明
 - 全局 `~/harness/user-memory.md` 已存在时绝对不能覆盖，必须保留用户已积累的偏好
-- 项目 `./harness/project-memory.md` 每次都会生成（覆盖项目内的旧版本），因为它是项目级配置
-- feature_list.json 生成后 features 数组为空，让用户自己添加功能
-- 生成后必须运行 `./harness/init.sh` 验证脚本工作正常
-- init.sh 生成后必须 `chmod +x` 设置执行权限
+- 保守 update 模式下，项目 `./harness/project-memory.md` 已存在时也不能覆盖；初始化模式下才从模板生成
+- Memory 写入规则必须避免和 Claude Code auto-memory 对抗：如果 auto-memory 也使用了，同步/镜像到 harness memory 即可
+- feature_list.json 生成后 features 数组为空，让用户自己添加功能；update 模式不得清空已有 features
+- 生成或补齐 init.sh 后必须 `chmod +x` 设置执行权限
+- 生成或 update 后必须尽量运行 `./harness/init.sh` 验证脚本工作正常；失败时报告错误，不要隐藏失败
+- update 模式结束时必须列出：新增文件、保留文件、追加说明、需人工对比的文件、验证结果
