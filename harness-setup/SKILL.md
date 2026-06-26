@@ -122,7 +122,8 @@ chmod +x harness/init.sh
   4. 如果没有等效规则，只追加一个小节，说明：
      - `~/harness/user-memory.md` 是跨项目偏好的主要 harness 写入位置
      - `harness/project-memory.md` 是当前项目偏好的主要 harness 写入位置
-     - 如果 Claude Code auto-memory 也记录偏好，必须同步/镜像到对应 harness memory
+     - 用户要求“记住”“以后”“下次”或表达稳定偏好时，必须先写入对应的 harness memory
+     - 如果 Claude Code auto-memory 也记录偏好，可以同步/镜像，但不得只写入 auto-memory；冲突时以 harness memory 为准
 
 “等效规则”按语义判断，不要求文本完全一致；重复运行时不得追加重复小节。
 
@@ -170,7 +171,8 @@ chmod +x harness/init.sh
   - 必需文件包含 `harness/feature_list.json`、`harness/claude-progress.md`、`harness/init.sh`、`harness/session-handoff.md`、`harness/project-memory.md`
   - 全局偏好位置是 `~/harness/user-memory.md`
   - 项目偏好位置是 `harness/project-memory.md`
-  - 如果 Claude Code auto-memory 也记录偏好，必须同步/镜像到对应 harness memory
+  - 用户要求“记住”“以后”“下次”或表达稳定偏好时，必须先写入对应的 harness memory
+  - 如果 Claude Code auto-memory 也记录偏好，可以同步/镜像，但不得只写入 auto-memory；冲突时以 harness memory 为准
 
 只有缺少等效说明时，才追加一个简短小节。重复运行时不得追加重复小节。判断“等效说明”按语义，不要求文本完全一致。
 
@@ -182,7 +184,8 @@ chmod +x harness/init.sh
 - 标准重启入口是 `./harness/init.sh`。
 - 项目状态以 `harness/feature_list.json`、`harness/claude-progress.md`、`harness/session-handoff.md` 为准。
 - 跨项目偏好写入 `~/harness/user-memory.md`；当前项目偏好写入 `harness/project-memory.md`。
-- 如果其他 memory 机制也记录偏好，必须同步或镜像到对应 harness memory，避免跨会话信息分裂。
+- 用户要求“记住”“以后”“下次”或表达稳定偏好时，先写入对应的 harness memory。
+- 如果其他 memory 机制也记录偏好，可以同步或镜像，但不得只写入 auto-memory；冲突时以 harness memory 为准。
 ```
 
 ### Update 步骤 5：报告保留和补齐结果
@@ -231,7 +234,7 @@ chmod +x harness/init.sh
 - 如果 CLAUDE.md / AGENTS.md 已存在，不要整体覆盖；只做窄范围修正：路径引用和缺失的 memory / 必需文件说明
 - 全局 `~/harness/user-memory.md` 已存在时绝对不能覆盖，必须保留用户已积累的偏好
 - 保守 update 模式下，项目 `./harness/project-memory.md` 已存在时也不能覆盖；初始化模式下才从模板生成
-- Memory 写入规则必须避免和 Claude Code auto-memory 对抗：如果 auto-memory 也使用了，同步/镜像到 harness memory 即可
+- Memory 写入规则必须避免和 Claude Code auto-memory 对抗：用户要求“记住”“以后”“下次”或表达稳定偏好时，先写入对应的 harness memory；如果 auto-memory 也使用了，可以同步/镜像，但不得只写入 auto-memory；冲突时以 harness memory 为准
 - feature_list.json 生成后 features 数组为空，让用户自己添加功能；update 模式不得清空已有 features
 - 生成或补齐 init.sh 后必须 `chmod +x` 设置执行权限
 - 生成或 update 后必须尽量运行 `./harness/init.sh` 验证脚本工作正常；失败时报告错误，不要隐藏失败

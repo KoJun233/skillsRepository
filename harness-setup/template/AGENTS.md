@@ -38,6 +38,12 @@
 
 - `~/harness/user-memory.md`：用户通用偏好，如存在则必须遵守
 
+## 记忆写入规则
+
+当用户要求“记住”“以后”“下次”或表达稳定偏好时，先写入对应的 harness memory：跨项目偏好写入 `~/harness/user-memory.md`，当前项目偏好或约定写入 `harness/project-memory.md`。
+
+如果 Claude Code auto-memory 也记录同一偏好，可以同步或镜像，但不得只写入 auto-memory。两边内容冲突时以 harness memory 为准。
+
 ## 完成定义
 
 一个功能只有在以下条件都满足时才算完成：
